@@ -1,46 +1,33 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const app = express();
-const Routes = require('./routes/route.js');
-
-const PORT = process.env.PORT || 5000;
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 
 dotenv.config();
 
+const app = express();
+const Routes = require("./routes/route.js");
 
-app.use(express.json({ limit: '10mb' }));
+const PORT = process.env.PORT || 5000;
+
 app.use(cors());
+app.use(express.json({ limit: "10mb" }));
 
+// ✅ Root route REQUIRED for Render
+app.get("/", (req, res) => {
+  res.status(200).send("Backend running successfully");
+});
 
-const uri =
-  'mongodb+srv://armansingh1196:Arman1196@bit-management-system.g46u2el.mongodb.net/';
+// API routes
+app.use("/api", Routes);
 
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-const clientOptions = {
-  serverApi: { version: '1', strict: true, deprecationErrors: true },
-};
-
-async function connectDB() {
-  try {
-    
-    await mongoose.connect(uri, clientOptions);
-
-    
-    await mongoose.connection.db.admin().command({ ping: 1 });
-    console.log('Connected to MongoDB!');
-  } catch (err) {
-    console.error('NOT CONNECTED TO NETWORK', err);
-    process.exit(1); 
-  }
-}
-
-
-connectDB().then(() => {
-  app.use('/', Routes);
-
-  app.listen(PORT, () => {
-    console.log(`Server started at port ${PORT}`);
-  });
+// Start server ALWAYS
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
